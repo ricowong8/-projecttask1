@@ -43,6 +43,17 @@ class InventoryApp:
         self.entry_cat.grid(row=4, column=1)
 
         tk.Button(self.input_frame, text="Add Product", command=self.add_product).grid(row=5, column=0, columnspan=2)
+        
+        tk.Button(self.input_frame, text="Remove Product",command= self.remove_product).g
+
+    def remove_product(self):
+        item_id = self.entry_id.get()
+        self.inventory.remove_product(item_id)
+        if success:
+            messagebox.showinfo("Success",f"Product{item_id}removed")
+        else:
+            messagebox.showinfo("Error",f"Product"{item_id}not found")
+        self.update_dashboard()
 
         # Tab 3: Present Data Page
         self.data_frame = tk.Frame(self.notebook)

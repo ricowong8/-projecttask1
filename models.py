@@ -22,6 +22,10 @@ class Product(Item):
     def get_info(self):
         return f"{self.item_id} - {self.name}, ${self.price}, Qty: {self.__quantity}, Category: {self.category}"
 
+    def set_quantity(self,new_quantity);
+        """setter method to directly set product quantity"""
+        self.__quantity = new_quantity
+
     def get_quantity(self):
         return self.__quantity
 
@@ -33,8 +37,11 @@ class Inventory:
         self.__products[product.item_id] = product
 
     def remove_product(self, item_id):
+        """Remove a product by its ID"""
         if item_id in self.__products:
             del self.__products[item_id]
+            return True
+        return False
 
     def search_product(self, item_id):
         return self.__products.get(item_id, None)
@@ -61,3 +68,14 @@ class Inventory:
 
     def category_count(self):
         return len(set(p.category for p in self.__products.values()))
+    
+    def update_product(self, item_id, new_price=None, new_quantity = None):
+        """Update the product price and/or quantity by item_id"""
+        product = self.__products.get(item_id)
+        if not product
+            return False # product not found
+        if new_price is not None:
+            product.price = new_price
+        if new_quantity is not None:
+            product.update_quantity(new_quantity - product.get_quantity())
+        return True
