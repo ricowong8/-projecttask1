@@ -20,9 +20,9 @@ class InventoryApp:
         tk.Label(self.menu_frame, text="📦 Inventory System", font=("Arial", 16, "bold")).pack(pady=20)
         tk.Label(self.menu_frame, text="Please select on the tab").pack()
 
-        # Tab 2: Record Product Page
+        # Tab 2: add Product Page
         self.input_frame = tk.Frame(self.notebook)
-        self.notebook.add(self.input_frame, text="Record New Product")
+        self.notebook.add(self.input_frame, text="Product info page")
 
         tk.Label(self.input_frame, text="Item ID").grid(row=0, column=0)
         tk.Label(self.input_frame, text="Name").grid(row=1, column=0)
@@ -42,22 +42,15 @@ class InventoryApp:
         self.entry_qty.grid(row=3, column=1)
         self.entry_cat.grid(row=4, column=1)
 
-        tk.Button(self.input_frame, text="Add Product", command=self.add_product).grid(row=5, column=0, columnspan=2)
-        
-        tk.Button(self.input_frame, text="Remove Product",command= self.remove_product).g
+        tk.Button(self.input_frame, text="Add Product",command=self.add_product).grid(row=5, column=0, columnspan=2)
+    
+        tk.Button(self.input_frame, text="Remove Product",command= self.remove_product).grid(row =  6, column = 0 , columnspan=2)
 
-    def remove_product(self):
-        item_id = self.entry_id.get()
-        self.inventory.remove_product(item_id)
-        if success:
-            messagebox.showinfo("Success",f"Product{item_id}removed")
-        else:
-            messagebox.showinfo("Error",f"Product"{item_id}not found")
-        self.update_dashboard()
+        tk.Button(self.input_frame, text="Update Product",command= self.update_product).grid(row = 6,column = 8 ,columnspan = 2)
 
-        # Tab 3: Present Data Page
+    # Tab 3: Present Data Page
         self.data_frame = tk.Frame(self.notebook)
-        self.notebook.add(self.data_frame, text="睇 Data")
+        self.notebook.add(self.data_frame, text="Data dashboard")
 
         self.text_area = tk.Text(self.data_frame, height=15, width=60)
         self.text_area.pack(pady=10)
@@ -71,6 +64,17 @@ class InventoryApp:
         tk.Button(self.data_frame, text="List Products", command=self.list_products).pack()
         tk.Button(self.data_frame, text="Update Dashboard", command=self.update_dashboard).pack()
 
+    def remove_product(self):
+        item_id = self.entry_id.get()
+        success = self.inventory.remove_product(item_id)
+        if success:
+            messagebox.showinfo("Success",f"Product{item_id}removed")
+        else:
+            messagebox.showerror("Error",f"Product{item_id}not found")
+        self.update_dashboard()
+
+
+        
     def add_product(self):
         try:
             item_id = self.entry_id.get()
@@ -104,6 +108,21 @@ class InventoryApp:
             canvas = FigureCanvasTkAgg(fig, master=self.frame_chart)
             canvas.draw()
             canvas.get_tk_widget().pack()
+    
+    def update_product(self):
+        try:
+            item_id = self.entry_id.get()
+            new_price = float(self.entry_price.get()) if self.entry_price.get() else None
+            new_qty = int(self.entry_qty.get()) if self.entry_qty.get()else None
+
+            success = self.inventory.update_product(item_id,new_price,new_qty)
+            if success:
+                messagebox.showinfo("Success",f"Product {item_id}updated")
+            else:
+                messagebox.showerror("Error",f"Product{item_id}not found!")
+            self.update_dashboard()
+        except ValueError:
+            messagebox.showerror("Error", "Invalid input")
 
         # KPI 面板
         for widget in self.frame_kpi.winfo_children():

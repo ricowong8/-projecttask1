@@ -22,12 +22,15 @@ class Product(Item):
     def get_info(self):
         return f"{self.item_id} - {self.name}, ${self.price}, Qty: {self.__quantity}, Category: {self.category}"
 
-    def set_quantity(self,new_quantity);
+    def set_quantity(self,new_quantity):
         """setter method to directly set product quantity"""
         self.__quantity = new_quantity
 
     def get_quantity(self):
         return self.__quantity
+    
+    def get_info(self):
+        return f"{self.item_id} - {self.name}, ${self.price},Qty:{self.__quantity}, Category : {self.category}"
 
 class Inventory:
     def __init__(self):
@@ -72,8 +75,9 @@ class Inventory:
     def update_product(self, item_id, new_price=None, new_quantity = None):
         """Update the product price and/or quantity by item_id"""
         product = self.__products.get(item_id)
-        if not product
+        if not product:
             return False # product not found
+        
         if new_price is not None:
             product.price = new_price
         if new_quantity is not None:

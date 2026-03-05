@@ -63,5 +63,3 @@ MIT License
 ---
 
 This README clearly explains the **project purpose, structure, features, installation, usage, and dashboard outputs**.  
-
-Would you like me to also draft a **“Report Section: OOP Concepts Explanation”** in English, so you can directly include it in your coursework submission?
