@@ -1,0 +1,23 @@
+{
+	"folders": [
+		{
+			"path": "../../../../Desktop/HKMU"
+		},
+		{
+			"path": ".."
+		}
+	],
+	"settings": {
+		"java.project.sourcePaths": [
+			"COMP 8020SEF Java Programming/lecture 8/COMP 2020SEF 8020SEF-Lab-08/Exercise/src",
+			"COMP 8020SEF Java Programming/Lecture 6 & Tutorial 6/COMP 2020SEF 8020SEF-Lab-06/Source/src",
+			"COMP 8020SEF Java Programming/Lecture 3 & Tutorial 3/COMP 2020SEF 8020SEF-Lab-03/Source/src",
+			"COMP 8020SEF Java Programming/Lecture 3 & Tutorial 3/COMP 2020SEF 8020SEF-Lab-03/Sample/src",
+			"COMP 8020SEF Java Programming/Lecture 2 & Tutorial 2/Revision/COMP 2020SEF 8020SEF-Lab-02/Source/src",
+			"COMP 8020SEF Java Programming/Lecture 2 & Tutorial 2/Revision/COMP 2020SEF 8020SEF-Lab-02/Sample/src",
+			"COMP 8020SEF Java Programming/COMP 2020SEF 8020SEF-Lab-05/Exercise/src",
+			"COMP 8020SEF Java Programming/Lecture 2 & Tutorial 2/Revision/COMP 2020SEF 8020SEF-Lab-02/Exercise/src"
+		],
+		"java.debug.settings.onBuildFailureProceed": true
+	}
+}
