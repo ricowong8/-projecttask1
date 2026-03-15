@@ -1,77 +1,46 @@
-import ttkbootstrap as tb
-from tkinter import messagebox
+import sys
+from PySide6.QtWidgets import QApplication
+from PySide6.QtCore import QTimer
+
+from login import LoginDialog
 from gui import InventoryApp
 
-USERS = {
+USERS: dict[str, dict] = {
     "admin": {"password": "1234", "role": "admin"},
     "user": {"password": "5678", "role": "viewer"},
 }
 MAX_ATTEMPTS = 3
 
 
-class LoginWindow:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Login - Bcry UI")
-        self.attempts = 0
+class AppController:
+    def __init__(self):
+        self.main_window: InventoryApp | None = None
+        self.login_dialog: LoginDialog | None = None
+        self._show_login()
 
-        frame = tb.Frame(root, padding=20)
-        frame.pack(fill="both", expand=True)
+    def _show_login(self):
+        self.login_dialog = LoginDialog(users=USERS, max_attempts=MAX_ATTEMPTS)
+        self.login_dialog.login_success.connect(self._on_login_success)
+        self.login_dialog.login_cancelled.connect(QApplication.quit)
+        self.login_dialog.show()
 
-        tb.Label(frame, text="Username", bootstyle="primary").grid(
-            row=0, column=0, padx=10, pady=10
-        )
-        tb.Label(frame, text="Password", bootstyle="primary").grid(
-            row=1, column=0, padx=10, pady=10
-        )
+    def _on_login_success(self, username: str, role: str):
+        self.login_dialog = None  # ✅ dialog 已自行 close()，只需釋放參考
 
-        self.entry_user = tb.Entry(frame, bootstyle="info")
-        self.entry_pass = tb.Entry(frame, show="*", bootstyle="info")
+        self.main_window = InventoryApp(username=username, role=role)
+        self.main_window.logout_requested.connect(self._on_logout)
+        self.main_window.show()
 
-        self.entry_user.grid(row=0, column=1, padx=10, pady=10)
-        self.entry_pass.grid(row=1, column=1, padx=10, pady=10)
-
-        tb.Button(
-            frame, text="Login", bootstyle="success", command=self.check_login
-        ).grid(row=2, column=0, columnspan=2, pady=15)
-
-    def check_login(self):
-        username = self.entry_user.get()
-        password = self.entry_pass.get()
-
-        if username in USERS and USERS[username]["password"] == password:
-            role = USERS[username]["role"]
-            messagebox.showinfo("Success", f"Welcome {username} ({role})!")
-            self.root.destroy()
-            main_app(username, role)
-        else:
-            self.attempts += 1
-            remaining = MAX_ATTEMPTS - self.attempts
-            if remaining > 0:
-                messagebox.showerror(
-                    "Error", f"Invalid login! {remaining} attempts left."
-                )
-            else:
-                messagebox.showerror("Error", "Too many failed attempts. Exiting...")
-                self.root.destroy()
-
-
-def main_app(username, role):
-    root = tb.Window(themename="darkly")
-    InventoryApp(
-        root, username=username, role=role, logout_callback=lambda: logout(root)
-    )
-    root.mainloop()
-
-
-def logout(root):
-    root.destroy()
-    login_root = tb.Window(themename="darkly")
-    LoginWindow(login_root)
-    login_root.mainloop()
+    def _on_logout(self):
+        if self.main_window:
+            self.main_window.close()
+            self.main_window = None
+        QTimer.singleShot(150, self._show_login)
 
 
 if __name__ == "__main__":
-    login_root = tb.Window(themename="darkly")
-    LoginWindow(login_root)
-    login_root.mainloop()
+    app = QApplication(sys.argv)
+    app.setStyle("Fusion")
+    app.setQuitOnLastWindowClosed(False)  # ✅ 視窗切換時唔會自動退出
+    controller = AppController()
+    sys.exit(app.exec())

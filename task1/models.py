@@ -1,96 +1,124 @@
 from abc import ABC, abstractmethod
+from typing import Optional
 
 
+# ──────────────────────────────────────────────
+# Abstract Base
+# ──────────────────────────────────────────────
 class Item(ABC):
-    def __init__(self, item_id, name, price):
+    def __init__(self, item_id: str, name: str, price: float):
         self.item_id = item_id
         self.name = name
         self.price = price
 
     @abstractmethod
-    def get_info(self):
-        """Abstract method to return item info"""
-        pass
+    def get_info(self) -> str: ...
+
+    def __repr__(self) -> str:
+        return self.get_info()
 
 
+# ──────────────────────────────────────────────
+# Product
+# ──────────────────────────────────────────────
 class Product(Item):
-    def __init__(self, item_id, name, price, quantity, category):
+    def __init__(
+        self, item_id: str, name: str, price: float, quantity: int, category: str
+    ):
         super().__init__(item_id, name, price)
-        self.__quantity = quantity
+        self._quantity = quantity
         self.category = category
 
-    def update_quantity(self, amount):
-        """Increment quantity by amount"""
-        self.__quantity += amount
+    @property
+    def quantity(self) -> int:
+        return self._quantity
 
-    def set_quantity(self, new_quantity):
-        """Setter method to directly set product quantity"""
-        self.__quantity = new_quantity
+    @quantity.setter
+    def quantity(self, value: int):
+        if value < 0:
+            raise ValueError(f"Quantity cannot be negative (got {value}).")
+        self._quantity = value
 
-    def get_quantity(self):
-        """Getter method for product quantity"""
-        return self.__quantity
+    def update_quantity(self, delta: int):
+        """增減數量；delta 可為負數"""
+        self.quantity = self._quantity + delta
 
-    def get_info(self):
-        return f"{self.item_id} - {self.name}, ${self.price}, Qty: {self.__quantity}, Category: {self.category}"
+    # 保留舊方法名，確保 gui.py 相容
+    def get_quantity(self) -> int:
+        return self._quantity
+
+    def set_quantity(self, value: int):
+        self.quantity = value
+
+    def get_info(self) -> str:
+        return (
+            f"[{self.item_id}] {self.name} | "
+            f"${self.price:.2f} | Qty: {self._quantity} | "
+            f"Category: {self.category}"
+        )
 
 
+# ──────────────────────────────────────────────
+# Inventory
+# ──────────────────────────────────────────────
 class Inventory:
     def __init__(self):
-        self.__products = {}
+        self._products: dict[str, Product] = {}
 
-    def add_product(self, product):
-        """Add a product object to inventory"""
-        self.__products[product.item_id] = product
+    # ── CRUD ──────────────────────────────────
+    def add_product(self, product: Product) -> bool:
+        """新增產品；ID 重複回傳 False"""
+        if product.item_id in self._products:
+            return False
+        self._products[product.item_id] = product
+        return True
 
-    def remove_product(self, item_id):
-        """Remove a product by its ID"""
-        if item_id in self.__products:
-            del self.__products[item_id]
-            return True
-        return False
+    def remove_product(self, item_id: str) -> bool:
+        return self._products.pop(item_id, None) is not None
 
-    def search_product(self, item_id):
-        """Search for a product by ID"""
-        return self.__products.get(item_id, None)
+    def update_product(
+        self,
+        item_id: str,
+        new_price: Optional[float] = None,
+        new_quantity: Optional[int] = None,
+    ) -> bool:
+        p = self._products.get(item_id)
+        if not p:
+            return False
+        if new_price is not None:
+            p.price = new_price
+        if new_quantity is not None:
+            p.quantity = new_quantity
+        return True
 
-    def list_all_products(self):
-        """Return list of product info strings"""
-        return [p.get_info() for p in self.__products.values()]
+    def search_product(self, item_id: str) -> Optional[Product]:
+        return self._products.get(item_id)
 
-    def category_summary(self):
-        """Return dictionary of category -> total quantity"""
-        summary = {}
-        for p in self.__products.values():
-            summary[p.category] = summary.get(p.category, 0) + p.get_quantity()
+    # ── 查詢 / 統計 ───────────────────────────
+    def list_all_products(self) -> list[str]:
+        return [p.get_info() for p in self._products.values()]
+
+    def category_summary(self) -> dict[str, int]:
+        summary: dict[str, int] = {}
+        for p in self._products.values():
+            summary[p.category] = summary.get(p.category, 0) + p.quantity
         return summary
 
-    def total_quantity(self):
-        """Return total quantity of all products"""
-        return sum(p.get_quantity() for p in self.__products.values())
+    def total_quantity(self) -> int:
+        return sum(p.quantity for p in self._products.values())
 
-    def low_stock_count(self, threshold=10):
-        """Return count of products below threshold"""
-        return sum(1 for p in self.__products.values() if p.get_quantity() < threshold)
+    def avg_price(self) -> float:
+        if not self._products:
+            return 0.0
+        return sum(p.price for p in self._products.values()) / len(self._products)
 
-    def avg_price(self):
-        """Return average price of products"""
-        if not self.__products:
-            return 0
-        return sum(p.price for p in self.__products.values()) / len(self.__products)
+    def category_count(self) -> int:
+        return len({p.category for p in self._products.values()})
 
-    def category_count(self):
-        """Return number of distinct categories"""
-        return len(set(p.category for p in self.__products.values()))
+    def low_stock_count(self, threshold: int = 10) -> int:
+        return sum(1 for p in self._products.values() if p.quantity < threshold)
 
-    def update_product(self, item_id, new_price=None, new_quantity=None):
-        """Update product price and/or quantity by item_id"""
-        product = self.__products.get(item_id)
-        if not product:
-            return False  # product not found
-
-        if new_price is not None:
-            product.price = new_price
-        if new_quantity is not None:
-            product.set_quantity(new_quantity)
-        return True
+    @property
+    def products(self) -> dict[str, Product]:
+        """唯讀字典視圖，供 GUI 層讀取"""
+        return self._products
